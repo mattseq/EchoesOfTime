@@ -8,6 +8,7 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -19,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SnapshotManager {
     public static WorldSnapshot captureSnapshot(ServerPlayer player) {
@@ -34,14 +36,15 @@ public class SnapshotManager {
                 for (int z = -radius; z <= radius; z++) {
                     BlockPos pos = center.offset(x, y, z);
                     BlockState state = world.getBlockState(pos);
-                    blocks.add(new BlockSnapshot(pos, state));
+                    CompoundTag blockEntityData = state.hasBlockEntity() ? world.getBlockEntity(pos).saveWithFullMetadata() : null;
+                    blocks.add(new BlockSnapshot(pos, state, blockEntityData));
                 }
             }
         }
 
         AABB box = new AABB(center).inflate(radius);
         for (Entity entity : world.getEntities(player, box, e -> e != player)) {
-            entities.add(new EntitySnapshot(entity.getType(), entity.position()));
+            entities.add(EntitySnapshot.fromEntity(entity));
         }
 
         Vec3 playerPos = player.position();
@@ -50,7 +53,7 @@ public class SnapshotManager {
 
         long timestamp = System.currentTimeMillis();
 
-        return new WorldSnapshot(playerPos, playerHealth, inventory, blocks, entities, timestamp);
+        return new WorldSnapshot(player, blocks, entities, timestamp);
     }
 
     public static void restoreSnapshot(ServerPlayer player, WorldSnapshot snapshot) {
@@ -61,6 +64,9 @@ public class SnapshotManager {
         // === Restore Blocks ===
         for (BlockSnapshot block : snapshot.blocks) {
             world.setBlockAndUpdate(block.pos, block.state);
+            if (block.blockEntityData != null) {
+                world.getBlockEntity(block.pos).load(block.blockEntityData);
+            }
         }
 
         // === Clear Existing Entities (excluding player) in Area ===
@@ -72,17 +78,34 @@ public class SnapshotManager {
 
         // === Restore Entities ===
         for (EntitySnapshot entitySnap : snapshot.entities) {
-            Entity entity = entitySnap.type.create(world);
-            if (entity != null) {
-                entity.setPos(entitySnap.pos.x, entitySnap.pos.y, entitySnap.pos.z);
-                world.addFreshEntity(entity);
+            // Create the entity from its NBT data (using the saved data)
+            CompoundTag entityData = entitySnap.entityData;
+            String entityTypeName = entityData.getString("id");  // This is the entity's ID (used to determine its type)
+
+            EntityType<?> entityType = EntityType.byString(entityTypeName).orElse(null);
+
+            if (entityType != null) {
+                // Create the entity using its type
+                Optional<Entity> optionalEntity = Optional.ofNullable(entityType.create(world));
+
+                optionalEntity.ifPresent(entity -> {
+                    // Load the entity's NBT data
+                    entity.load(entityData);
+
+                    // Add the entity to the world without modifying its position
+                    world.addFreshEntity(entity);
+                });
             }
         }
 
         // === Restore Player State ===
         player.setPos(snapshot.playerPos.x, snapshot.playerPos.y, snapshot.playerPos.z);
         player.setHealth(snapshot.playerHealth);
+        player.totalExperience = snapshot.experience;
+        player.getFoodData().setFoodLevel(snapshot.foodLevel);
+        player.getFoodData().setSaturation(snapshot.saturationLevel);
 
+        // Restore inventory
         player.getInventory().clearContent();
         List<ItemStack> fullInventory = snapshot.playerInventory;
         if (fullInventory.size() >= 41) {
@@ -99,7 +122,6 @@ public class SnapshotManager {
                 player.getInventory().offhand.set(i, offhand.get(i));
             }
         } else {
-            TimeMachine.LOGGER.warn("Snapshot inventory too small! Skipping restore.");
             return;
         }
         player.inventoryMenu.broadcastChanges(); // syncs inventory with client
@@ -111,6 +133,8 @@ public class SnapshotManager {
         try (DataOutputStream out = new DataOutputStream(Files.newOutputStream(filePath))) {
             NbtIo.writeCompressed(nbt, out);
         }
+
+//        TimeMachine.LOGGER.debug(nbt.toString());
     }
 
     public static WorldSnapshot loadSnapshotFromFile(Path filePath) throws IOException {

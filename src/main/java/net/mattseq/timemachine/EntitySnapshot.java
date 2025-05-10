@@ -1,14 +1,19 @@
 package net.mattseq.timemachine;
 
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.Entity;
 
 public class EntitySnapshot {
-    public EntityType<?> type;
-    public Vec3 pos;
+    public CompoundTag entityData;
 
-    public EntitySnapshot(EntityType<?> type, Vec3 pos) {
-        this.type = type;
-        this.pos = pos;
+    // Constructor
+    public EntitySnapshot(CompoundTag entityData) {
+        this.entityData = entityData;
+    }
+
+    public static EntitySnapshot fromEntity(Entity entity) {
+        CompoundTag entityTag = new CompoundTag();
+        entity.save(entityTag);
+        return new EntitySnapshot(entityTag);
     }
 }

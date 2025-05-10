@@ -1,46 +1,84 @@
 package net.mattseq.timemachine;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class WorldSnapshot {
+
     public Vec3 playerPos;
     public float playerHealth;
     public List<ItemStack> playerInventory;
+
+    public int experience;
+    public int foodLevel;
+    public float saturationLevel;
+    public List<MobEffectInstance> effects;
+
+
     public List<BlockSnapshot> blocks;
     public List<EntitySnapshot> entities;
+
+    public long worldTime;
+    public boolean isRaining;
+    public boolean isThundering;
+
     public long timestamp;
 
     public WorldSnapshot(ServerPlayer player, List<BlockSnapshot> blocks, List<EntitySnapshot> entities, long timestamp) {
         this.playerPos = player.position();
         this.playerHealth = player.getHealth();
+        this.playerInventory = new ArrayList<>();
         this.playerInventory.addAll(player.getInventory().items);
         this.playerInventory.addAll(player.getInventory().armor);
         this.playerInventory.addAll(player.getInventory().offhand);
 
+        this.experience = player.totalExperience;
+        this.foodLevel = player.getFoodData().getFoodLevel();
+        this.saturationLevel = player.getFoodData().getSaturationLevel();
+        this.effects = new ArrayList<>(player.getActiveEffects());
+
+
         this.blocks = blocks;
         this.entities = entities;
+
+        this.worldTime = player.level().getDayTime();
+        this.isRaining = player.level().isRaining();
+        this.isThundering = player.level().isThundering();
+
+
         this.timestamp = timestamp;
     }
 
-    public WorldSnapshot(Vec3 playerPos, float playerHealth,
-                         List<ItemStack> playerInventory, List<BlockSnapshot> blocks,
-                         List<EntitySnapshot> entities, long timestamp) {
-        this.playerPos = playerPos;
-        this.playerHealth = playerHealth;
-        this.playerInventory = playerInventory;
+    // second constructor for creating WorldSnapshot from nbt
+    public WorldSnapshot(
+            List<BlockSnapshot> blocks, List<EntitySnapshot> entities,
+            Vec3 playerPos, float playerHealth, int experience, int foodLevel, float saturationLevel,
+            List<ItemStack> playerInventory, List<MobEffectInstance> effects,
+            long worldTime, boolean isRaining, boolean isThundering, long timestamp) {
         this.blocks = blocks;
         this.entities = entities;
+        this.playerPos = playerPos;
+        this.playerHealth = playerHealth;
+        this.experience = experience;
+        this.foodLevel = foodLevel;
+        this.saturationLevel = saturationLevel;
+        this.playerInventory = playerInventory;
         this.timestamp = timestamp;
+        this.effects = effects;
+        this.worldTime = worldTime;
+        this.isRaining = isRaining;
+        this.isThundering = isThundering;
     }
 
 
@@ -51,7 +89,17 @@ public class WorldSnapshot {
         tag.putDouble("PosY", playerPos.y);
         tag.putDouble("PosZ", playerPos.z);
         tag.putFloat("Health", playerHealth);
-        tag.putLong("Timestamp", timestamp);
+
+        tag.putInt("Experience", experience);
+        tag.putInt("FoodLevel", foodLevel);
+        tag.putFloat("Saturation", saturationLevel);
+
+        // Effects
+        ListTag effectsTag = new ListTag();
+        for (MobEffectInstance effect : effects) {
+            effectsTag.add(effect.save(new CompoundTag()));
+        }
+        tag.put("Effects", effectsTag);
 
         // Inventory
         ListTag invTag = new ListTag();
@@ -60,7 +108,13 @@ public class WorldSnapshot {
         }
         tag.put("Inventory", invTag);
 
-        // Blocks
+        // World state
+        tag.putLong("WorldTime", worldTime);
+        tag.putBoolean("IsRaining", isRaining);
+        tag.putBoolean("IsThundering", isThundering);
+        tag.putLong("Timestamp", timestamp);
+
+        // Blocks + Block Entities
         ListTag blocksTag = new ListTag();
         for (BlockSnapshot bs : blocks) {
             CompoundTag b = new CompoundTag();
@@ -68,19 +122,17 @@ public class WorldSnapshot {
             b.putInt("Y", bs.pos.getY());
             b.putInt("Z", bs.pos.getZ());
             b.put("State", NbtUtils.writeBlockState(bs.state));
+            if (bs.blockEntityData != null) {
+                b.put("BlockEntity", bs.blockEntityData);
+            }
             blocksTag.add(b);
         }
         tag.put("Blocks", blocksTag);
 
-        // Entities
+        // Entities (full NBT)
         ListTag entitiesTag = new ListTag();
         for (EntitySnapshot es : entities) {
-            CompoundTag e = new CompoundTag();
-            e.putString("Type", EntityType.getKey(es.type).toString());
-            e.putDouble("X", es.pos.x);
-            e.putDouble("Y", es.pos.y);
-            e.putDouble("Z", es.pos.z);
-            entitiesTag.add(e);
+            entitiesTag.add(es.entityData);
         }
         tag.put("Entities", entitiesTag);
 
@@ -88,13 +140,27 @@ public class WorldSnapshot {
     }
 
     public static WorldSnapshot fromNbt(CompoundTag tag) {
-        double x = tag.getDouble("PosX");
-        double y = tag.getDouble("PosY");
-        double z = tag.getDouble("PosZ");
-        Vec3 playerPos = new Vec3(x, y, z);
+        Vec3 playerPos = new Vec3(
+                tag.getDouble("PosX"),
+                tag.getDouble("PosY"),
+                tag.getDouble("PosZ")
+        );
 
         float health = tag.getFloat("Health");
+        int experience = tag.getInt("Experience");
+        int foodLevel = tag.getInt("FoodLevel");
+        float saturation = tag.getFloat("Saturation");
+        long worldTime = tag.getLong("WorldTime");
+        boolean isRaining = tag.getBoolean("IsRaining");
+        boolean isThundering = tag.getBoolean("IsThundering");
         long timestamp = tag.getLong("Timestamp");
+
+        // Effects
+        List<MobEffectInstance> effects = new ArrayList<>();
+        ListTag effectsTag = tag.getList("Effects", CompoundTag.TAG_COMPOUND);
+        for (int i = 0; i < effectsTag.size(); i++) {
+            effects.add(MobEffectInstance.load(effectsTag.getCompound(i)));
+        }
 
         // Inventory
         ListTag invTag = tag.getList("Inventory", CompoundTag.TAG_COMPOUND);
@@ -104,28 +170,28 @@ public class WorldSnapshot {
         }
 
         // Blocks
+        List<BlockSnapshot> blocks = new ArrayList<>();
         ListTag blocksTag = tag.getList("Blocks", CompoundTag.TAG_COMPOUND);
-        List<BlockSnapshot> blocks = new java.util.ArrayList<>();
         for (int i = 0; i < blocksTag.size(); i++) {
             CompoundTag b = blocksTag.getCompound(i);
             BlockPos pos = new BlockPos(b.getInt("X"), b.getInt("Y"), b.getInt("Z"));
-            BlockState state = NbtUtils.readBlockState(net.minecraft.core.registries.BuiltInRegistries.BLOCK.asLookup(), b.getCompound("State"));
-            blocks.add(new BlockSnapshot(pos, state));
+            BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), b.getCompound("State"));
+            CompoundTag beData = b.contains("BlockEntity") ? b.getCompound("BlockEntity") : null;
+            blocks.add(new BlockSnapshot(pos, state, beData));
         }
 
         // Entities
+        List<EntitySnapshot> entities = new ArrayList<>();
         ListTag entitiesTag = tag.getList("Entities", CompoundTag.TAG_COMPOUND);
-        List<EntitySnapshot> entities = new java.util.ArrayList<>();
         for (int i = 0; i < entitiesTag.size(); i++) {
-            CompoundTag e = entitiesTag.getCompound(i);
-            EntityType<?> type = EntityType.byString(e.getString("Type")).orElse(null);
-            if (type != null) {
-                Vec3 pos = new Vec3(e.getDouble("X"), e.getDouble("Y"), e.getDouble("Z"));
-                entities.add(new EntitySnapshot(type, pos));
-            }
+            entities.add(new EntitySnapshot(entitiesTag.getCompound(i)));
         }
 
-        return new WorldSnapshot(playerPos, health, inventory, blocks, entities, timestamp);
+        // Build snapshot
+        return new WorldSnapshot(
+                blocks, entities,
+                playerPos, health, experience, foodLevel, saturation, inventory, effects,
+                worldTime, isRaining, isThundering, timestamp);
     }
 
 }

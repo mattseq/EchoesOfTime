@@ -99,7 +99,7 @@ public class SnapshotManager {
         }
 
         // === Restore Player State ===
-        player.setPos(snapshot.playerPos.x, snapshot.playerPos.y, snapshot.playerPos.z);
+        player.teleportTo(snapshot.playerPos.x, snapshot.playerPos.y, snapshot.playerPos.z);
         player.setHealth(snapshot.playerHealth);
         player.totalExperience = snapshot.experience;
         player.getFoodData().setFoodLevel(snapshot.foodLevel);
@@ -133,8 +133,6 @@ public class SnapshotManager {
         try (DataOutputStream out = new DataOutputStream(Files.newOutputStream(filePath))) {
             NbtIo.writeCompressed(nbt, out);
         }
-
-//        TimeMachine.LOGGER.debug(nbt.toString());
     }
 
     public static WorldSnapshot loadSnapshotFromFile(Path filePath) throws IOException {

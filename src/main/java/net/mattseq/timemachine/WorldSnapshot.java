@@ -36,6 +36,7 @@ public class WorldSnapshot {
     public long timestamp;
 
     public WorldSnapshot(ServerPlayer player, List<BlockSnapshot> blocks, List<EntitySnapshot> entities, long timestamp) {
+
         this.playerPos = player.position();
         this.playerHealth = player.getHealth();
         this.playerInventory = new ArrayList<>();

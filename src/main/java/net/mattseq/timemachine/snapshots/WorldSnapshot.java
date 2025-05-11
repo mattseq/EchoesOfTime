@@ -1,4 +1,4 @@
-package net.mattseq.timemachine;
+package net.mattseq.timemachine.snapshots;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;

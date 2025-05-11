@@ -2,17 +2,16 @@ package net.mattseq.timemachine;
 
 // File: SnapshotManager.java
 
+import net.mattseq.timemachine.snapshots.BlockSnapshot;
+import net.mattseq.timemachine.snapshots.EntitySnapshot;
+import net.mattseq.timemachine.snapshots.WorldSnapshot;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 

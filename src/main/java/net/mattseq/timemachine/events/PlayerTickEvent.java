@@ -1,4 +1,4 @@
-package net.mattseq.timemachine.item;
+package net.mattseq.timemachine.events;
 
 import net.mattseq.timemachine.RewindGlobalManager;
 import net.mattseq.timemachine.TimeMachine;

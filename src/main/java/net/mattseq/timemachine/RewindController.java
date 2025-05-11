@@ -1,7 +1,11 @@
 package net.mattseq.timemachine;
 
+import net.mattseq.timemachine.snapshots.WorldSnapshot;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -13,6 +17,10 @@ public class RewindController {
     private final ServerPlayer player;
     private final Deque<CompoundTag> rewindBuffer = new ArrayDeque<>();
 
+    private boolean isRewinding = false;
+    private int tickDelay = 10; // 1 second delay between snapshots
+    private int tickCounter = 0;
+
     private long lastSnapshotTime = 0;
 
     public RewindController(ServerPlayer player) {
@@ -20,6 +28,8 @@ public class RewindController {
     }
 
     public void tick(long currentTimeMillis) {
+        if (isRewinding) return; // Don't record during rewind
+
         if (currentTimeMillis - lastSnapshotTime >= SNAPSHOT_INTERVAL_MS) {
             WorldSnapshot snapshot = SnapshotManager.captureSnapshot(player);
             rewindBuffer.addLast(snapshot.toNbt());
@@ -35,19 +45,29 @@ public class RewindController {
 
     public void rewind() {
         if (rewindBuffer.isEmpty()) return;
-        while (!rewindBuffer.isEmpty()) {
-            // Pause before restoring each snapshot
-//            try {
-//                Thread.sleep(2000); // Delay
-//            } catch (InterruptedException e) {
-//                // Handle the exception if the thread is interrupted
-//                Thread.currentThread().interrupt();
-//                return;
-//            }
 
-            CompoundTag tag = rewindBuffer.pollLast(); // Newest first
-            WorldSnapshot snapshot = WorldSnapshot.fromNbt(tag); // Deserialize
-            SnapshotManager.restoreSnapshot(player, snapshot);
+        isRewinding = true;
+        tickCounter = 0;
+        MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    @SubscribeEvent
+    public void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || !isRewinding) return;
+
+        tickCounter++;
+
+        if (tickCounter >= tickDelay) {
+            tickCounter = 0;
+
+            if (!rewindBuffer.isEmpty()) {
+                CompoundTag tag = rewindBuffer.pollLast();
+                WorldSnapshot snapshot = WorldSnapshot.fromNbt(tag);
+                SnapshotManager.restoreSnapshot(player, snapshot);
+            } else {
+                isRewinding = false;
+                MinecraftForge.EVENT_BUS.unregister(this);
+            }
         }
     }
 }

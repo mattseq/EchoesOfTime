@@ -17,19 +17,8 @@ public class StoreWandItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
 
-
-
-//            WorldSnapshot snapshot = SnapshotManager.captureSnapshot(serverPlayer);
-//            Path filePath = Path.of("snapshots", serverPlayer.getScoreboardName() + ".nbt");
-//            try {
-//                Files.createDirectories(filePath.getParent());
-//                SnapshotManager.saveSnapshotToFile(snapshot, filePath);
-//                player.sendSystemMessage(Component.literal("Snapshot saved!"));
-//            } catch (IOException e) {
-//                player.sendSystemMessage(Component.literal("Failed to save snapshot."));
-//                e.printStackTrace();
-//            }
         }
         return InteractionResultHolder.success(player.getItemInHand(hand));
     }
+
 }

@@ -2,6 +2,7 @@ package net.mattseq.timemachine;
 
 import com.mojang.logging.LogUtils;
 import net.mattseq.timemachine.item.ModItems;
+import net.mattseq.timemachine.networking.ModNetworking;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
@@ -29,6 +30,7 @@ public class TimeMachine
         IEventBus modEventBus = context.getModEventBus();
 
         ModItems.register(modEventBus);
+        ModNetworking.register();
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);

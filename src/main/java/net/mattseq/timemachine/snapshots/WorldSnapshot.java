@@ -16,6 +16,8 @@ public class WorldSnapshot {
 
     public CompoundTag playerData;
     public Vec3 playerPos;
+    public float playerPitch;
+    public float playerYaw;
 
     public List<BlockSnapshot> blocks;
     public List<EntitySnapshot> entities;
@@ -32,6 +34,8 @@ public class WorldSnapshot {
         player.saveWithoutId(tag);
         this.playerData = tag;
         this.playerPos = player.position();
+        this.playerPitch = player.getXRot();
+        this.playerYaw = player.getYRot();
 
         this.blocks = blocks;
         this.entities = entities;
@@ -46,12 +50,14 @@ public class WorldSnapshot {
     // second constructor for creating WorldSnapshot from nbt
     public WorldSnapshot(
             List<BlockSnapshot> blocks, List<EntitySnapshot> entities,
-            Vec3 playerPos, CompoundTag playerData,
+            Vec3 playerPos, float playerPitch, float playerYaw, CompoundTag playerData,
             long worldTime, boolean isRaining, boolean isThundering, long timestamp) {
         this.blocks = blocks;
         this.entities = entities;
-        this.playerData = playerData;
         this.playerPos = playerPos;
+        this.playerPitch = playerPitch;
+        this.playerYaw = playerYaw;
+        this.playerData = playerData;
         this.worldTime = worldTime;
         this.isRaining = isRaining;
         this.isThundering = isThundering;
@@ -65,6 +71,9 @@ public class WorldSnapshot {
         tag.putDouble("PosX", playerPos.x);
         tag.putDouble("PosY", playerPos.y);
         tag.putDouble("PosZ", playerPos.z);
+
+        tag.putFloat("XRot", playerPitch);
+        tag.putFloat("YRot", playerYaw);
 
         tag.put("PlayerData", playerData);
 
@@ -106,6 +115,9 @@ public class WorldSnapshot {
                 tag.getDouble("PosZ")
         );
 
+        float playerPitch = tag.getFloat("XRot");
+        float playerYaw = tag.getFloat("YRot");
+
         CompoundTag playerData = tag.getCompound("PlayerData");
 
         long worldTime = tag.getLong("WorldTime");
@@ -134,7 +146,7 @@ public class WorldSnapshot {
         // Build snapshot
         return new WorldSnapshot(
                 blocks, entities,
-                playerPos, playerData,
+                playerPos, playerPitch, playerYaw, playerData,
                 worldTime, isRaining, isThundering, timestamp);
     }
 

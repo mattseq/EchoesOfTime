@@ -1,5 +1,6 @@
 package net.mattseq.timemachine;
 
+import net.mattseq.timemachine.events.ClientEvents;
 import net.mattseq.timemachine.snapshots.WorldSnapshot;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,6 +49,7 @@ public class RewindController {
 
         isRewinding = true;
         tickCounter = 0;
+        ClientEvents.lockMovement = true;
         MinecraftForge.EVENT_BUS.register(this);
     }
 
@@ -66,6 +68,7 @@ public class RewindController {
                 SnapshotManager.restoreSnapshot(player, snapshot);
             } else {
                 isRewinding = false;
+                ClientEvents.lockMovement = false;
                 MinecraftForge.EVENT_BUS.unregister(this);
             }
         }

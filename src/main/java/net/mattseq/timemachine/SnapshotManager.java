@@ -2,6 +2,8 @@ package net.mattseq.timemachine;
 
 // File: SnapshotManager.java
 
+import net.mattseq.timemachine.networking.ModNetworking;
+import net.mattseq.timemachine.networking.SetViewPacket;
 import net.mattseq.timemachine.snapshots.BlockSnapshot;
 import net.mattseq.timemachine.snapshots.EntitySnapshot;
 import net.mattseq.timemachine.snapshots.WorldSnapshot;
@@ -14,6 +16,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -100,7 +103,8 @@ public class SnapshotManager {
             }
         }
 
-        player.teleportTo(snapshot.playerPos.x, snapshot.playerPos.y, snapshot.playerPos.z);
+        player.setPos(snapshot.playerPos.x, snapshot.playerPos.y, snapshot.playerPos.z);
+        ModNetworking.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new SetViewPacket(snapshot.playerYaw, snapshot.playerPitch));
         player.load(snapshot.playerData);
         player.inventoryMenu.broadcastChanges();
     }

@@ -6,8 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -16,15 +14,8 @@ import java.util.List;
 
 public class WorldSnapshot {
 
+    public CompoundTag playerData;
     public Vec3 playerPos;
-    public float playerHealth;
-    public List<ItemStack> playerInventory;
-
-    public int experience;
-    public int foodLevel;
-    public float saturationLevel;
-    public List<MobEffectInstance> effects;
-
 
     public List<BlockSnapshot> blocks;
     public List<EntitySnapshot> entities;
@@ -37,18 +28,10 @@ public class WorldSnapshot {
 
     public WorldSnapshot(ServerPlayer player, List<BlockSnapshot> blocks, List<EntitySnapshot> entities, long timestamp) {
 
+        CompoundTag tag = new CompoundTag();
+        player.saveWithoutId(tag);
+        this.playerData = tag;
         this.playerPos = player.position();
-        this.playerHealth = player.getHealth();
-        this.playerInventory = new ArrayList<>();
-        this.playerInventory.addAll(player.getInventory().items);
-        this.playerInventory.addAll(player.getInventory().armor);
-        this.playerInventory.addAll(player.getInventory().offhand);
-
-        this.experience = player.totalExperience;
-        this.foodLevel = player.getFoodData().getFoodLevel();
-        this.saturationLevel = player.getFoodData().getSaturationLevel();
-        this.effects = new ArrayList<>(player.getActiveEffects());
-
 
         this.blocks = blocks;
         this.entities = entities;
@@ -57,29 +40,22 @@ public class WorldSnapshot {
         this.isRaining = player.level().isRaining();
         this.isThundering = player.level().isThundering();
 
-
         this.timestamp = timestamp;
     }
 
     // second constructor for creating WorldSnapshot from nbt
     public WorldSnapshot(
             List<BlockSnapshot> blocks, List<EntitySnapshot> entities,
-            Vec3 playerPos, float playerHealth, int experience, int foodLevel, float saturationLevel,
-            List<ItemStack> playerInventory, List<MobEffectInstance> effects,
+            Vec3 playerPos, CompoundTag playerData,
             long worldTime, boolean isRaining, boolean isThundering, long timestamp) {
         this.blocks = blocks;
         this.entities = entities;
+        this.playerData = playerData;
         this.playerPos = playerPos;
-        this.playerHealth = playerHealth;
-        this.experience = experience;
-        this.foodLevel = foodLevel;
-        this.saturationLevel = saturationLevel;
-        this.playerInventory = playerInventory;
-        this.timestamp = timestamp;
-        this.effects = effects;
         this.worldTime = worldTime;
         this.isRaining = isRaining;
         this.isThundering = isThundering;
+        this.timestamp = timestamp;
     }
 
 
@@ -89,25 +65,8 @@ public class WorldSnapshot {
         tag.putDouble("PosX", playerPos.x);
         tag.putDouble("PosY", playerPos.y);
         tag.putDouble("PosZ", playerPos.z);
-        tag.putFloat("Health", playerHealth);
 
-        tag.putInt("Experience", experience);
-        tag.putInt("FoodLevel", foodLevel);
-        tag.putFloat("Saturation", saturationLevel);
-
-        // Effects
-        ListTag effectsTag = new ListTag();
-        for (MobEffectInstance effect : effects) {
-            effectsTag.add(effect.save(new CompoundTag()));
-        }
-        tag.put("Effects", effectsTag);
-
-        // Inventory
-        ListTag invTag = new ListTag();
-        for (ItemStack stack : playerInventory) {
-            invTag.add(stack.save(new CompoundTag()));
-        }
-        tag.put("Inventory", invTag);
+        tag.put("PlayerData", playerData);
 
         // World state
         tag.putLong("WorldTime", worldTime);
@@ -147,28 +106,12 @@ public class WorldSnapshot {
                 tag.getDouble("PosZ")
         );
 
-        float health = tag.getFloat("Health");
-        int experience = tag.getInt("Experience");
-        int foodLevel = tag.getInt("FoodLevel");
-        float saturation = tag.getFloat("Saturation");
+        CompoundTag playerData = tag.getCompound("PlayerData");
+
         long worldTime = tag.getLong("WorldTime");
         boolean isRaining = tag.getBoolean("IsRaining");
         boolean isThundering = tag.getBoolean("IsThundering");
         long timestamp = tag.getLong("Timestamp");
-
-        // Effects
-        List<MobEffectInstance> effects = new ArrayList<>();
-        ListTag effectsTag = tag.getList("Effects", CompoundTag.TAG_COMPOUND);
-        for (int i = 0; i < effectsTag.size(); i++) {
-            effects.add(MobEffectInstance.load(effectsTag.getCompound(i)));
-        }
-
-        // Inventory
-        ListTag invTag = tag.getList("Inventory", CompoundTag.TAG_COMPOUND);
-        List<ItemStack> inventory = new java.util.ArrayList<>();
-        for (int i = 0; i < invTag.size(); i++) {
-            inventory.add(ItemStack.of(invTag.getCompound(i)));
-        }
 
         // Blocks
         List<BlockSnapshot> blocks = new ArrayList<>();
@@ -191,7 +134,7 @@ public class WorldSnapshot {
         // Build snapshot
         return new WorldSnapshot(
                 blocks, entities,
-                playerPos, health, experience, foodLevel, saturation, inventory, effects,
+                playerPos, playerData,
                 worldTime, isRaining, isThundering, timestamp);
     }
 

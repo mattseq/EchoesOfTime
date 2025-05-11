@@ -3,6 +3,8 @@ package net.mattseq.timemachine;
 // File: SnapshotManager.java
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.level.ServerLevel;
@@ -10,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
@@ -19,14 +22,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class SnapshotManager {
 
-    public static final int radius = 16;
+    public static final int radius = 8;
 
     public static WorldSnapshot captureSnapshot(ServerPlayer player) {
-        ServerLevel world = player.serverLevel(); // ServerWorld in 1.20 Forge
+        ServerLevel world = player.serverLevel();
         BlockPos center = player.blockPosition();
         List<BlockSnapshot> blocks = new ArrayList<>();
         List<EntitySnapshot> entities = new ArrayList<>();
@@ -50,6 +54,9 @@ public class SnapshotManager {
 
         long timestamp = System.currentTimeMillis();
 
+        CompoundTag playerTag = new CompoundTag();
+        player.saveWithoutId(playerTag);
+
         return new WorldSnapshot(player, blocks, entities, timestamp);
     }
 
@@ -61,7 +68,7 @@ public class SnapshotManager {
         for (BlockSnapshot block : snapshot.blocks) {
             world.setBlockAndUpdate(block.pos, block.state);
             if (block.blockEntityData != null) {
-                world.getBlockEntity(block.pos).load(block.blockEntityData);
+                Objects.requireNonNull(world.getBlockEntity(block.pos)).load(block.blockEntityData);
             }
         }
 
@@ -94,33 +101,9 @@ public class SnapshotManager {
             }
         }
 
-        // === Restore Player State ===
         player.teleportTo(snapshot.playerPos.x, snapshot.playerPos.y, snapshot.playerPos.z);
-        player.setHealth(snapshot.playerHealth);
-        player.totalExperience = snapshot.experience;
-        player.getFoodData().setFoodLevel(snapshot.foodLevel);
-        player.getFoodData().setSaturation(snapshot.saturationLevel);
-
-        // Restore inventory
-        player.getInventory().clearContent();
-        List<ItemStack> fullInventory = snapshot.playerInventory;
-        if (fullInventory.size() >= 41) {
-            List<ItemStack> items = fullInventory.subList(0, 36);
-            List<ItemStack> armor = fullInventory.subList(36, 40);
-            List<ItemStack> offhand = fullInventory.subList(40, 41);
-            for (int i = 0; i < items.size(); i++) {
-                player.getInventory().items.set(i, items.get(i));
-            }
-            for (int i = 0; i < armor.size(); i++) {
-                player.getInventory().armor.set(i, armor.get(i));
-            }
-            for (int i = 0; i < offhand.size(); i++) {
-                player.getInventory().offhand.set(i, offhand.get(i));
-            }
-        } else {
-            return;
-        }
-        player.inventoryMenu.broadcastChanges(); // syncs inventory with client
+        player.load(snapshot.playerData);
+        player.inventoryMenu.broadcastChanges();
     }
 
 

@@ -37,21 +37,17 @@ public class RewindController {
         if (rewindBuffer.isEmpty()) return;
         while (!rewindBuffer.isEmpty()) {
             // Pause before restoring each snapshot
-            try {
-                Thread.sleep(100); // Delay
-            } catch (InterruptedException e) {
-                // Handle the exception if the thread is interrupted
-                Thread.currentThread().interrupt();
-                return;
-            }
+//            try {
+//                Thread.sleep(2000); // Delay
+//            } catch (InterruptedException e) {
+//                // Handle the exception if the thread is interrupted
+//                Thread.currentThread().interrupt();
+//                return;
+//            }
 
             CompoundTag tag = rewindBuffer.pollLast(); // Newest first
             WorldSnapshot snapshot = WorldSnapshot.fromNbt(tag); // Deserialize
             SnapshotManager.restoreSnapshot(player, snapshot);
         }
-
-//        WorldSnapshot snapshot = rewindBuffer.peekFirst(); // Earliest snapshot
-//        SnapshotManager.restoreSnapshot(player, snapshot);
-//        rewindBuffer.clear(); // Clear after rewind
     }
 }

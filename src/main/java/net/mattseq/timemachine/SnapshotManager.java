@@ -12,7 +12,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -23,13 +22,15 @@ import java.util.List;
 import java.util.Optional;
 
 public class SnapshotManager {
+
+    public static final int radius = 16;
+
     public static WorldSnapshot captureSnapshot(ServerPlayer player) {
         ServerLevel world = player.serverLevel(); // ServerWorld in 1.20 Forge
         BlockPos center = player.blockPosition();
         List<BlockSnapshot> blocks = new ArrayList<>();
         List<EntitySnapshot> entities = new ArrayList<>();
 
-        int radius = 8;
 
         for (int x = -radius; x <= radius; x++) {
             for (int y = -radius; y <= radius; y++) {
@@ -47,10 +48,6 @@ public class SnapshotManager {
             entities.add(EntitySnapshot.fromEntity(entity));
         }
 
-        Vec3 playerPos = player.position();
-        float playerHealth = player.getHealth();
-        List<ItemStack> inventory = new ArrayList<>(player.getInventory().items);
-
         long timestamp = System.currentTimeMillis();
 
         return new WorldSnapshot(player, blocks, entities, timestamp);
@@ -58,8 +55,7 @@ public class SnapshotManager {
 
     public static void restoreSnapshot(ServerPlayer player, WorldSnapshot snapshot) {
         ServerLevel world = player.serverLevel();
-        BlockPos center = player.blockPosition();
-        int radius = 8;
+        BlockPos center = new BlockPos((int) snapshot.playerPos.x, (int) snapshot.playerPos.y, (int) snapshot.playerPos.z);
 
         // === Restore Blocks ===
         for (BlockSnapshot block : snapshot.blocks) {

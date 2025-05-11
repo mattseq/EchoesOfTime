@@ -7,7 +7,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public class RewindController {
-    private static final long MAX_SNAPSHOT_AGE_MS = 20000; // Store 10 seconds of snapshots
+    private static final long MAX_SNAPSHOT_AGE_MS = 10000; // Store 10 seconds of snapshots
     private static final long SNAPSHOT_INTERVAL_MS = 500;  // Take a snapshot every 0.5 seconds
 
     private final ServerPlayer player;
@@ -36,6 +36,15 @@ public class RewindController {
     public void rewind() {
         if (rewindBuffer.isEmpty()) return;
         while (!rewindBuffer.isEmpty()) {
+            // Pause before restoring each snapshot
+            try {
+                Thread.sleep(100); // Delay
+            } catch (InterruptedException e) {
+                // Handle the exception if the thread is interrupted
+                Thread.currentThread().interrupt();
+                return;
+            }
+
             CompoundTag tag = rewindBuffer.pollLast(); // Newest first
             WorldSnapshot snapshot = WorldSnapshot.fromNbt(tag); // Deserialize
             SnapshotManager.restoreSnapshot(player, snapshot);

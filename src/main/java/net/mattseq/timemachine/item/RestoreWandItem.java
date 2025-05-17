@@ -18,7 +18,7 @@ public class RestoreWandItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
 
-            RewindGlobalManager.getOrCreateController(serverPlayer).rewind();
+//            RewindGlobalManager.getOrCreateController(serverPlayer).rewind();
 
 //            Path filePath = Path.of("snapshots", serverPlayer.getScoreboardName() + ".nbt");
 //            if (!Files.exists(filePath)) {

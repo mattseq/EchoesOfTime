@@ -16,6 +16,9 @@ public class ModItems {
     public static final RegistryObject<Item> RESTORE_WAND = ITEMS.register("restore_wand",
             () -> new RestoreWandItem(new Item.Properties()));
 
+    public static final RegistryObject<Item> TOTEM_OF_ECHOES = ITEMS.register("totem_of_echoes",
+            () -> new TotemOfEchoesItem(new Item.Properties()));
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

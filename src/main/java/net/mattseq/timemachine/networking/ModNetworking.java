@@ -18,5 +18,6 @@ public class ModNetworking {
 
     public static void register() {
         CHANNEL.registerMessage(packetId++, SetViewPacket.class, SetViewPacket::encode, SetViewPacket::decode, SetViewPacket::handle);
+        CHANNEL.registerMessage(packetId++, TotemPacket.class, TotemPacket::encode, TotemPacket::decode, TotemPacket::handle);
     }
 }

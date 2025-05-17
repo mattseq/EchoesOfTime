@@ -1,9 +1,11 @@
 package net.mattseq.timemachine;
 
 import net.mattseq.timemachine.events.ClientEvents;
+import net.mattseq.timemachine.item.ModItems;
 import net.mattseq.timemachine.snapshots.WorldSnapshot;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -19,10 +21,12 @@ public class RewindController {
     private final Deque<CompoundTag> rewindBuffer = new ArrayDeque<>();
 
     private boolean isRewinding = false;
-    private int tickDelay = 10; // 1 second delay between snapshots
+    private int tickDelay = 5; // 1 second delay between snapshots during rewind
     private int tickCounter = 0;
 
     private long lastSnapshotTime = 0;
+
+    private int oldTotemDamage;
 
     public RewindController(ServerPlayer player) {
         this.player = player;
@@ -31,6 +35,7 @@ public class RewindController {
     public void tick(long currentTimeMillis) {
         if (isRewinding) return; // Don't record during rewind
 
+        // record
         if (currentTimeMillis - lastSnapshotTime >= SNAPSHOT_INTERVAL_MS) {
             WorldSnapshot snapshot = SnapshotManager.captureSnapshot(player);
             rewindBuffer.addLast(snapshot.toNbt());
@@ -46,11 +51,11 @@ public class RewindController {
 
     public void rewind() {
         if (rewindBuffer.isEmpty()) return;
-
         isRewinding = true;
         tickCounter = 0;
         ClientEvents.lockMovement = true;
         MinecraftForge.EVENT_BUS.register(this);
+        this.oldTotemDamage = findTotemOfEchoes(player).getDamageValue();
     }
 
     @SubscribeEvent
@@ -67,10 +72,23 @@ public class RewindController {
                 WorldSnapshot snapshot = WorldSnapshot.fromNbt(tag);
                 SnapshotManager.restoreSnapshot(player, snapshot);
             } else {
+                ItemStack totem = findTotemOfEchoes(player);
+                findTotemOfEchoes(player).setDamageValue(oldTotemDamage + 1);
+                if (totem.getDamageValue() >= totem.getMaxDamage()) {
+                    totem.shrink(1);
+                }
                 isRewinding = false;
                 ClientEvents.lockMovement = false;
                 MinecraftForge.EVENT_BUS.unregister(this);
             }
         }
+    }
+
+    private static ItemStack findTotemOfEchoes(ServerPlayer player) {
+        ItemStack main = player.getMainHandItem();
+        ItemStack off = player.getOffhandItem();
+        if (main.getItem() == ModItems.TOTEM_OF_ECHOES.get()) return main;
+        if (off.getItem() == ModItems.TOTEM_OF_ECHOES.get()) return off;
+        return ItemStack.EMPTY;
     }
 }

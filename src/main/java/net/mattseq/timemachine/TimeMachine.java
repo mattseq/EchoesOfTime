@@ -56,6 +56,9 @@ public class TimeMachine
         if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             event.accept(ModItems.RESTORE_WAND);
         }
+        if (event.getTabKey() == CreativeModeTabs.COMBAT) {
+            event.accept(ModItems.TOTEM_OF_ECHOES);
+        }
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call

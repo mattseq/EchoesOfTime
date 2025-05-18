@@ -7,7 +7,7 @@ public class TotemOfEchoesItem extends Item {
     public TotemOfEchoesItem(Properties p_41383_) {
         super(new Item.Properties()
                 .stacksTo(1)
-                .durability(5) // Set durability here
+                .durability(4) // Set durability here
                 .rarity(Rarity.RARE)
         );
     }

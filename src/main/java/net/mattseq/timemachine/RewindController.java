@@ -73,7 +73,7 @@ public class RewindController {
                 SnapshotManager.restoreSnapshot(player, snapshot);
             } else {
                 ItemStack totem = findTotemOfEchoes(player);
-                findTotemOfEchoes(player).setDamageValue(oldTotemDamage + 1);
+                findTotemOfEchoes(player).setDamageValue(oldTotemDamage + totem.getMaxDamage()/4);
                 if (totem.getDamageValue() >= totem.getMaxDamage()) {
                     totem.shrink(1);
                 }

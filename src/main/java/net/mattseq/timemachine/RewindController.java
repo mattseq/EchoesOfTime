@@ -1,11 +1,9 @@
 package net.mattseq.timemachine;
 
 import net.mattseq.timemachine.events.ClientEvents;
-import net.mattseq.timemachine.item.ModItems;
 import net.mattseq.timemachine.snapshots.WorldSnapshot;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -20,13 +18,15 @@ public class RewindController {
     private final ServerPlayer player;
     private final Deque<CompoundTag> rewindBuffer = new ArrayDeque<>();
 
-    private boolean isRewinding = false;
-    private int tickDelay = 5; // 1 second delay between snapshots during rewind
+    public boolean isRewinding = false;
+
+    public long rewindSteps;
+    public long rewindStepCounter = 0;
+
+    private int tickDelay = 5; // delay between snapshots during rewind
     private int tickCounter = 0;
 
     private long lastSnapshotTime = 0;
-
-    private int oldTotemDamage;
 
     public RewindController(ServerPlayer player) {
         this.player = player;
@@ -43,19 +43,31 @@ public class RewindController {
         }
 
         // Trim old snapshots
-        rewindBuffer.removeIf(tag -> {
-            long timestamp = tag.getLong("Timestamp");
-            return currentTimeMillis - timestamp > MAX_SNAPSHOT_AGE_MS;
-        });
+        trimRewindBuffer(rewindBuffer, (int) (MAX_SNAPSHOT_AGE_MS/SNAPSHOT_INTERVAL_MS));
+//        rewindBuffer.removeIf(tag -> {
+//            long timestamp = tag.getLong("Timestamp");
+//            return currentTimeMillis - timestamp > MAX_SNAPSHOT_AGE_MS;
+//        });
+
+        TimeMachine.LOGGER.debug(String.valueOf(rewindBuffer.size()));
     }
 
-    public void rewind() {
+    public void startRewind(float percent) {
         if (rewindBuffer.isEmpty()) return;
         isRewinding = true;
+        rewindSteps = (long) percent * (MAX_SNAPSHOT_AGE_MS/SNAPSHOT_INTERVAL_MS);
         tickCounter = 0;
         ClientEvents.lockMovement = true;
         MinecraftForge.EVENT_BUS.register(this);
-        this.oldTotemDamage = findTotemOfEchoes(player).getDamageValue();
+    }
+
+    public void stopRewind() {
+        isRewinding = false;
+        rewindStepCounter = 0;
+        rewindBuffer.clear();
+        tickCounter = 0;
+        ClientEvents.lockMovement = false;
+        MinecraftForge.EVENT_BUS.unregister(this);
     }
 
     @SubscribeEvent
@@ -67,28 +79,22 @@ public class RewindController {
         if (tickCounter >= tickDelay) {
             tickCounter = 0;
 
-            if (!rewindBuffer.isEmpty()) {
+            if (rewindStepCounter < rewindSteps && !rewindBuffer.isEmpty()) {
                 CompoundTag tag = rewindBuffer.pollLast();
                 WorldSnapshot snapshot = WorldSnapshot.fromNbt(tag);
                 SnapshotManager.restoreSnapshot(player, snapshot);
+                rewindStepCounter += 1;
             } else {
-                ItemStack totem = findTotemOfEchoes(player);
-                findTotemOfEchoes(player).setDamageValue(oldTotemDamage + totem.getMaxDamage()/4);
-                if (totem.getDamageValue() >= totem.getMaxDamage()) {
-                    totem.shrink(1);
-                }
-                isRewinding = false;
-                ClientEvents.lockMovement = false;
-                MinecraftForge.EVENT_BUS.unregister(this);
+                stopRewind();
             }
+            TimeMachine.LOGGER.debug(String.valueOf(rewindBuffer.size()));
         }
     }
 
-    private static ItemStack findTotemOfEchoes(ServerPlayer player) {
-        ItemStack main = player.getMainHandItem();
-        ItemStack off = player.getOffhandItem();
-        if (main.getItem() == ModItems.TOTEM_OF_ECHOES.get()) return main;
-        if (off.getItem() == ModItems.TOTEM_OF_ECHOES.get()) return off;
-        return ItemStack.EMPTY;
+    public static void trimRewindBuffer(Deque<CompoundTag> rewindBuffer, int maxSize) {
+        if (rewindBuffer.size() > maxSize) {
+            rewindBuffer.removeFirst();
+            trimRewindBuffer(rewindBuffer, maxSize);
+        }
     }
 }

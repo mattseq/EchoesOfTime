@@ -44,12 +44,6 @@ public class RewindController {
 
         // Trim old snapshots
         trimRewindBuffer(rewindBuffer, (int) (MAX_SNAPSHOT_AGE_MS/SNAPSHOT_INTERVAL_MS));
-//        rewindBuffer.removeIf(tag -> {
-//            long timestamp = tag.getLong("Timestamp");
-//            return currentTimeMillis - timestamp > MAX_SNAPSHOT_AGE_MS;
-//        });
-
-        TimeMachine.LOGGER.debug(String.valueOf(rewindBuffer.size()));
     }
 
     public void startRewind(float percent) {
@@ -87,7 +81,6 @@ public class RewindController {
             } else {
                 stopRewind();
             }
-            TimeMachine.LOGGER.debug(String.valueOf(rewindBuffer.size()));
         }
     }
 

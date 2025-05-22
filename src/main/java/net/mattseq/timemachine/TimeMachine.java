@@ -51,13 +51,10 @@ public class TimeMachine
     private void addCreative(BuildCreativeModeTabContentsEvent event)
     {
         if (event.getTabKey() == CreativeModeTabs.COMBAT) {
-            event.accept(ModItems.STORE_WAND);
-        }
-        if (event.getTabKey() == CreativeModeTabs.COMBAT) {
-            event.accept(ModItems.RESTORE_WAND);
-        }
-        if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             event.accept(ModItems.TOTEM_OF_ECHOES);
+        }
+        if (event.getTabKey() == CreativeModeTabs.COMBAT) {
+            event.accept(ModItems.SCEPTER_OF_ECHOES);
         }
     }
 

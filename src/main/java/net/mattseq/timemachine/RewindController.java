@@ -49,7 +49,7 @@ public class RewindController {
     public void startRewind(float percent) {
         if (rewindBuffer.isEmpty()) return;
         isRewinding = true;
-        rewindSteps = (long) percent * (MAX_SNAPSHOT_AGE_MS/SNAPSHOT_INTERVAL_MS);
+        rewindSteps = (long) (percent * (MAX_SNAPSHOT_AGE_MS / SNAPSHOT_INTERVAL_MS));
         tickCounter = 0;
         ClientEvents.lockMovement = true;
         MinecraftForge.EVENT_BUS.register(this);

@@ -10,14 +10,11 @@ import net.minecraftforge.registries.RegistryObject;
 public class ModItems {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, TimeMachine.MODID);
 
-    public static final RegistryObject<Item> STORE_WAND = ITEMS.register("store_wand",
-            () -> new StoreWandItem(new Item.Properties()));
-
-    public static final RegistryObject<Item> RESTORE_WAND = ITEMS.register("restore_wand",
-            () -> new RestoreWandItem(new Item.Properties()));
-
     public static final RegistryObject<Item> TOTEM_OF_ECHOES = ITEMS.register("totem_of_echoes",
             () -> new TotemOfEchoesItem(new Item.Properties()));
+
+    public static final RegistryObject<Item> SCEPTER_OF_ECHOES = ITEMS.register("scepter_of_echoes",
+            () -> new ScepterOfEchoesItem(new Item.Properties()));
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);

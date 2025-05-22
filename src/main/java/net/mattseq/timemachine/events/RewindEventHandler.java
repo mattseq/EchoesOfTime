@@ -8,6 +8,7 @@ import net.mattseq.timemachine.networking.ModNetworking;
 import net.mattseq.timemachine.networking.TotemPacket;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.event.TickEvent;
@@ -17,26 +18,31 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 
 @Mod.EventBusSubscriber(modid = TimeMachine.MODID)
-public class TotemEventHandler {
+public class RewindEventHandler {
 
     private static int oldTotemDamage;
 
-    public static boolean rewindStarted = false;
+    public static boolean totemRewindStarted = false;
 
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END || !(event.player instanceof ServerPlayer player)) return;
+
         ItemStack totem = findTotemOfEchoes(player);
+        ItemStack scepter = findScepterOfEchoes(player);
+
         RewindController rewindController = RewindGlobalManager.getOrCreateController(player);
-        if (!totem.isEmpty()) {
+        if ((!totem.isEmpty()) || (!scepter.isEmpty())) {
             rewindController.tick(System.currentTimeMillis());
         }
-        if (rewindStarted && !rewindController.isRewinding) {
+
+        // for totem damage
+        if (totemRewindStarted && !rewindController.isRewinding) {
             totem.setDamageValue(oldTotemDamage + totem.getMaxDamage()/4);
             if (totem.getDamageValue() >= totem.getMaxDamage()) {
                 totem.shrink(1);
             }
-            rewindStarted = false;
+            totemRewindStarted = false;
         }
     }
 
@@ -58,7 +64,7 @@ public class TotemEventHandler {
 
             // Custom rewind logic
             RewindGlobalManager.getOrCreateController(player).startRewind(1);
-            rewindStarted = true;
+            totemRewindStarted = true;
         }
     }
 
@@ -68,5 +74,25 @@ public class TotemEventHandler {
         if (main.getItem() == ModItems.TOTEM_OF_ECHOES.get()) return main;
         if (off.getItem() == ModItems.TOTEM_OF_ECHOES.get()) return off;
         return ItemStack.EMPTY;
+    }
+
+    private static ItemStack findScepterOfEchoes(ServerPlayer player) {
+        Item scepter = ModItems.SCEPTER_OF_ECHOES.get();
+
+        for (ItemStack stack : player.getInventory().items) {
+            if (stack.getItem() == scepter) {
+                return stack;
+            }
+        }
+
+        // Also check offhand and armor slots if needed:
+        if (player.getOffhandItem().getItem() == scepter) {
+            return player.getOffhandItem();
+        }
+        if (player.getMainHandItem().getItem() == scepter) {
+            return player.getMainHandItem();
+        }
+
+        return ItemStack.EMPTY; // Not found
     }
 }

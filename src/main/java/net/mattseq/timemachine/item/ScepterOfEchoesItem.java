@@ -16,6 +16,8 @@ import net.minecraft.world.level.Level;
 
 public class ScepterOfEchoesItem extends Item {
 
+    private final int maxChargeTime = 40; // in ticks
+
     public ScepterOfEchoesItem(Properties p_41383_) {
         super(new Item.Properties()
                 .stacksTo(1)
@@ -30,10 +32,9 @@ public class ScepterOfEchoesItem extends Item {
         return InteractionResultHolder.consume(player.getItemInHand(hand));
     }
 
-    // How long the item can be used (charge time in ticks)
     @Override
     public int getUseDuration(ItemStack stack) {
-        return 100;
+        return 72000;
     }
 
     // show charging animation like a bow
@@ -48,10 +49,18 @@ public class ScepterOfEchoesItem extends Item {
         if (!(user instanceof ServerPlayer player) || level.isClientSide()) return;
 
         int chargeTime = getUseDuration(stack) - timeLeft; // ticks held
-        float chargePercent = (float) chargeTime / getUseDuration(stack);
+        float chargePercent;
+
+        if (chargeTime <= maxChargeTime) {
+            chargePercent = (float) chargeTime / maxChargeTime;
+        } else {
+            chargePercent = 1;
+        }
+
 
         RewindController controller = RewindGlobalManager.getOrCreateController(player); // Assuming you have a per-player controller
         controller.startRewind(chargePercent);
+        TimeMachine.LOGGER.debug(String.valueOf(chargePercent));
 
         // damage the item slightly
         stack.hurt(1, level.getRandom(), player);

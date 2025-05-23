@@ -103,9 +103,9 @@ public class SnapshotManager {
             }
         }
 
-        player.setPos(snapshot.playerPos.x, snapshot.playerPos.y, snapshot.playerPos.z);
-        ModNetworking.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new SetViewPacket(snapshot.playerYaw, snapshot.playerPitch));
         player.load(snapshot.playerData);
+        player.teleportTo(snapshot.playerPos.x, snapshot.playerPos.y, snapshot.playerPos.z);
+        ModNetworking.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new SetViewPacket(snapshot.playerYaw, snapshot.playerPitch));
         player.inventoryMenu.broadcastChanges();
     }
 

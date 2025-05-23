@@ -56,6 +56,7 @@ public class RewindEventHandler {
         if (!totem.isEmpty()) {
             // Cancel death
             event.setCanceled(true);
+            player.setHealth(player.getMaxHealth());
 
             oldTotemDamage = findTotemOfEchoes(player).getDamageValue();
 

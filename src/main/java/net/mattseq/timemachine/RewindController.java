@@ -43,7 +43,9 @@ public class RewindController {
         }
 
         // Trim old snapshots
-        trimRewindBuffer(rewindBuffer, (int) (MAX_SNAPSHOT_AGE_MS/SNAPSHOT_INTERVAL_MS));
+        while (rewindBuffer.size() > (MAX_SNAPSHOT_AGE_MS/SNAPSHOT_INTERVAL_MS)) {
+            rewindBuffer.removeFirst(); // remove the oldest snapshot
+        }
     }
 
     public void startRewind(float percent) {
@@ -81,13 +83,6 @@ public class RewindController {
             } else {
                 stopRewind();
             }
-        }
-    }
-
-    public static void trimRewindBuffer(Deque<CompoundTag> rewindBuffer, int maxSize) {
-        if (rewindBuffer.size() > maxSize) {
-            rewindBuffer.removeFirst();
-            trimRewindBuffer(rewindBuffer, maxSize);
         }
     }
 }

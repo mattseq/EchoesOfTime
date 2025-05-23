@@ -1,17 +1,13 @@
 package net.mattseq.timemachine.events;
 
 import net.mattseq.timemachine.TimeMachine;
-import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = TimeMachine.MODID)
 public class ClientEvents {
     public static boolean lockMovement = false;
-    private static float lockedYaw = 0;
-    private static float lockedPitch = 0;
 
     @SubscribeEvent
     public static void onMovementInputUpdate(MovementInputUpdateEvent event) {

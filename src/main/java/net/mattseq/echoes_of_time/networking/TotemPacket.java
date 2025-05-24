@@ -1,6 +1,6 @@
-package net.mattseq.timemachine.networking;
+package net.mattseq.echoes_of_time.networking;
 
-import net.mattseq.timemachine.item.ModItems;
+import net.mattseq.echoes_of_time.item.ModItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.FriendlyByteBuf;

@@ -1,4 +1,4 @@
-package net.mattseq.timemachine.networking;
+package net.mattseq.echoes_of_time.networking;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;

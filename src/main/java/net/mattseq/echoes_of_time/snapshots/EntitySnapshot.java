@@ -1,4 +1,4 @@
-package net.mattseq.timemachine.snapshots;
+package net.mattseq.echoes_of_time.snapshots;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;

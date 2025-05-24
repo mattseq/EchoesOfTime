@@ -1,4 +1,4 @@
-package net.mattseq.timemachine;
+package net.mattseq.echoes_of_time;
 
 import net.minecraft.server.level.ServerPlayer;
 

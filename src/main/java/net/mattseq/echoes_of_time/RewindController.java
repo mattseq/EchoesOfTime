@@ -1,7 +1,7 @@
-package net.mattseq.timemachine;
+package net.mattseq.echoes_of_time;
 
-import net.mattseq.timemachine.events.ClientEvents;
-import net.mattseq.timemachine.snapshots.WorldSnapshot;
+import net.mattseq.echoes_of_time.events.ClientEvents;
+import net.mattseq.echoes_of_time.snapshots.WorldSnapshot;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;

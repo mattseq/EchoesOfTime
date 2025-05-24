@@ -1,8 +1,7 @@
-package net.mattseq.timemachine.item;
+package net.mattseq.echoes_of_time.item;
 
-import net.mattseq.timemachine.RewindController;
-import net.mattseq.timemachine.RewindGlobalManager;
-import net.mattseq.timemachine.TimeMachine;
+import net.mattseq.echoes_of_time.RewindController;
+import net.mattseq.echoes_of_time.RewindGlobalManager;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -60,9 +59,5 @@ public class ScepterOfEchoesItem extends Item {
 
         RewindController controller = RewindGlobalManager.getOrCreateController(player); // Assuming you have a per-player controller
         controller.startRewind(chargePercent);
-        TimeMachine.LOGGER.debug(String.valueOf(chargePercent));
-
-        // damage the item slightly
-        stack.hurt(1, level.getRandom(), player);
     }
 }

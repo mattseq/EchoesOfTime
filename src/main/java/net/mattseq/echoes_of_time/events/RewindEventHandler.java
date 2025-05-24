@@ -1,11 +1,11 @@
-package net.mattseq.timemachine.events;
+package net.mattseq.echoes_of_time.events;
 
-import net.mattseq.timemachine.RewindController;
-import net.mattseq.timemachine.RewindGlobalManager;
-import net.mattseq.timemachine.TimeMachine;
-import net.mattseq.timemachine.item.ModItems;
-import net.mattseq.timemachine.networking.ModNetworking;
-import net.mattseq.timemachine.networking.TotemPacket;
+import net.mattseq.echoes_of_time.EchoesOfTime;
+import net.mattseq.echoes_of_time.RewindController;
+import net.mattseq.echoes_of_time.RewindGlobalManager;
+import net.mattseq.echoes_of_time.item.ModItems;
+import net.mattseq.echoes_of_time.networking.ModNetworking;
+import net.mattseq.echoes_of_time.networking.TotemPacket;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
@@ -17,7 +17,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 
-@Mod.EventBusSubscriber(modid = TimeMachine.MODID)
+@Mod.EventBusSubscriber(modid = EchoesOfTime.MODID)
 public class RewindEventHandler {
 
     private static int oldTotemDamage;

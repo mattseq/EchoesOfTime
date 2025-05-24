@@ -1,12 +1,12 @@
-package net.mattseq.timemachine;
+package net.mattseq.echoes_of_time;
 
 // File: SnapshotManager.java
 
-import net.mattseq.timemachine.networking.ModNetworking;
-import net.mattseq.timemachine.networking.SetViewPacket;
-import net.mattseq.timemachine.snapshots.BlockSnapshot;
-import net.mattseq.timemachine.snapshots.EntitySnapshot;
-import net.mattseq.timemachine.snapshots.WorldSnapshot;
+import net.mattseq.echoes_of_time.networking.ModNetworking;
+import net.mattseq.echoes_of_time.networking.SetViewPacket;
+import net.mattseq.echoes_of_time.snapshots.BlockSnapshot;
+import net.mattseq.echoes_of_time.snapshots.EntitySnapshot;
+import net.mattseq.echoes_of_time.snapshots.WorldSnapshot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;

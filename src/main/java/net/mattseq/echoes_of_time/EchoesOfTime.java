@@ -1,8 +1,8 @@
-package net.mattseq.timemachine;
+package net.mattseq.echoes_of_time;
 
 import com.mojang.logging.LogUtils;
-import net.mattseq.timemachine.item.ModItems;
-import net.mattseq.timemachine.networking.ModNetworking;
+import net.mattseq.echoes_of_time.item.ModItems;
+import net.mattseq.echoes_of_time.networking.ModNetworking;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
@@ -17,15 +17,15 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod(TimeMachine.MODID)
-public class TimeMachine
+@Mod(EchoesOfTime.MODID)
+public class EchoesOfTime
 {
     // Define mod id in a common place for everything to reference
-    public static final String MODID = "timemachine";
+    public static final String MODID = "echoes_of_time";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public TimeMachine(FMLJavaModLoadingContext context)
+    public EchoesOfTime(FMLJavaModLoadingContext context)
     {
         IEventBus modEventBus = context.getModEventBus();
 

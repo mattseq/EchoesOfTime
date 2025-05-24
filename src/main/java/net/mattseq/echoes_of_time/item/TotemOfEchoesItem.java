@@ -1,4 +1,4 @@
-package net.mattseq.timemachine.item;
+package net.mattseq.echoes_of_time.item;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;

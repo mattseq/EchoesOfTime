@@ -1,6 +1,6 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "timemachine:item/totem_of_echoes"
+    "layer0": "echoes_of_time:item/totem_of_echoes"
   }
 }

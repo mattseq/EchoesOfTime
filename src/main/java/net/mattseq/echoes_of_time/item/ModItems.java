@@ -16,6 +16,15 @@ public class ModItems {
     public static final RegistryObject<Item> SCEPTER_OF_ECHOES = ITEMS.register("scepter_of_echoes",
             () -> new ScepterOfEchoesItem(new Item.Properties()));
 
+    public static final RegistryObject<Item> WARDEN_RIB = ITEMS.register("warden_rib",
+            () -> new WardenRibItem(new Item.Properties()));
+
+    public static final RegistryObject<Item> TEMPORAL_CORE = ITEMS.register("temporal_core",
+            () -> new TemporalCoreItem(new Item.Properties()));
+
+    public static final RegistryObject<Item> FRACTURED_HOURGLASS = ITEMS.register("fractured_hourglass",
+            () -> new FracturedHourglassItem(new Item.Properties()));
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

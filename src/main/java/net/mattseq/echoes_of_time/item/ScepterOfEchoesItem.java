@@ -28,6 +28,7 @@ public class ScepterOfEchoesItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         player.startUsingItem(hand);
+        player.setInvulnerable(true);
         return InteractionResultHolder.consume(player.getItemInHand(hand));
     }
 
@@ -55,7 +56,6 @@ public class ScepterOfEchoesItem extends Item {
         } else {
             chargePercent = 1;
         }
-
 
         RewindController controller = RewindGlobalManager.getOrCreateController(player); // Assuming you have a per-player controller
         controller.startRewind(chargePercent);

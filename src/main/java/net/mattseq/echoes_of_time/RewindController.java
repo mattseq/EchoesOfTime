@@ -54,6 +54,7 @@ public class RewindController {
         rewindSteps = (long) (percent * (MAX_SNAPSHOT_AGE_MS / SNAPSHOT_INTERVAL_MS));
         tickCounter = 0;
         ClientEvents.lockMovement = true;
+        player.setInvulnerable(true);
         MinecraftForge.EVENT_BUS.register(this);
     }
 
@@ -63,6 +64,7 @@ public class RewindController {
         rewindBuffer.clear();
         tickCounter = 0;
         ClientEvents.lockMovement = false;
+        player.setInvulnerable(false);
         MinecraftForge.EVENT_BUS.unregister(this);
     }
 

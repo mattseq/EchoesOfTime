@@ -56,6 +56,15 @@ public class EchoesOfTime
         if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             event.accept(ModItems.SCEPTER_OF_ECHOES);
         }
+        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+            event.accept(ModItems.WARDEN_RIB);
+        }
+        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+            event.accept(ModItems.TEMPORAL_CORE);
+        }
+        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+            event.accept(ModItems.FRACTURED_HOURGLASS);
+        }
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call

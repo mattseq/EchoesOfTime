@@ -1,6 +1,7 @@
 package net.mattseq.echoes_of_time.events;
 
 import net.mattseq.echoes_of_time.EchoesOfTime;
+import net.minecraftforge.client.event.ComputeFovModifierEvent;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -17,6 +18,14 @@ public class ClientEvents {
             event.getInput().leftImpulse = 0;
             event.getInput().jumping = false;
             event.getInput().shiftKeyDown = false;
+        }
+    }
+
+    @SubscribeEvent
+    public static void onFOVChange(ComputeFovModifierEvent event) {
+        if (lockMovement) {
+            float zoomFactor = 2f;
+            event.setNewFovModifier(zoomFactor);
         }
     }
 }

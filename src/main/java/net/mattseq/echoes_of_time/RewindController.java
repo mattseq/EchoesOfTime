@@ -14,17 +14,15 @@ import java.util.Deque;
 public class RewindController {
     private static final long MAX_SNAPSHOT_AGE_MS = 10000; // Store 10 seconds of snapshots
     private static final long SNAPSHOT_INTERVAL_MS = 500;  // Take a snapshot every 0.5 seconds
+    private static final long REWIND_SPEED = 100; // 100 ms of rewind time per 1 tick (50 ms) of real time
 
     private final ServerPlayer player;
     private final Deque<CompoundTag> rewindBuffer = new ArrayDeque<>();
 
     public boolean isRewinding = false;
 
-    public long rewindSteps;
-    public long rewindStepCounter = 0;
-
-    private int tickDelay = 5; // delay between snapshots during rewind
-    private int tickCounter = 0;
+    private long rewindCurrentTime;
+    private long rewindTargetTime;
 
     private long lastSnapshotTime = 0;
 
@@ -50,9 +48,11 @@ public class RewindController {
 
     public void startRewind(float percent) {
         if (rewindBuffer.isEmpty()) return;
+
+        long latestTime = rewindBuffer.getLast().getLong("Timestamp");
+        rewindCurrentTime = latestTime;
+        rewindTargetTime = latestTime - (long)(percent * MAX_SNAPSHOT_AGE_MS);
         isRewinding = true;
-        rewindSteps = (long) (percent * (MAX_SNAPSHOT_AGE_MS / SNAPSHOT_INTERVAL_MS));
-        tickCounter = 0;
         ClientEvents.lockMovement = true;
         player.setInvulnerable(true);
         MinecraftForge.EVENT_BUS.register(this);
@@ -60,9 +60,7 @@ public class RewindController {
 
     public void stopRewind() {
         isRewinding = false;
-        rewindStepCounter = 0;
         rewindBuffer.clear();
-        tickCounter = 0;
         ClientEvents.lockMovement = false;
         player.setInvulnerable(false);
         MinecraftForge.EVENT_BUS.unregister(this);
@@ -72,19 +70,51 @@ public class RewindController {
     public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END || !isRewinding) return;
 
-        tickCounter++;
+        rewindCurrentTime -= REWIND_SPEED;
 
-        if (tickCounter >= tickDelay) {
-            tickCounter = 0;
+        if (rewindCurrentTime <= rewindTargetTime || rewindBuffer.isEmpty()) {
+            stopRewind();
+            return;
+        }
 
-            if (rewindStepCounter < rewindSteps && !rewindBuffer.isEmpty()) {
-                CompoundTag tag = rewindBuffer.pollLast();
-                WorldSnapshot snapshot = WorldSnapshot.fromNbt(tag);
-                SnapshotManager.restoreSnapshot(player, snapshot);
-                rewindStepCounter += 1;
+        CompoundTag prevTag = null;
+        CompoundTag nextTag = null;
+
+        long prevTime = 0;
+        long nextTime = 0;
+
+        for (CompoundTag tag : rewindBuffer) {
+            long ts = tag.getLong("Timestamp");
+            if (ts <= rewindCurrentTime) {
+                prevTag = tag;  // update prev until no longer <= rewindCurrentTime
+                prevTime = ts;
             } else {
-                stopRewind();
+                nextTag = tag;  // first tag > rewindCurrentTime is next
+                nextTime = ts;
+                break;
             }
         }
+
+        if (prevTag == null) {
+            // first rewind
+            WorldSnapshot snapshot = WorldSnapshot.fromNbt(nextTag);
+            SnapshotManager.restoreSnapshot(player, snapshot);
+            return;
+        } else if (nextTag == null) {
+            // last rewind
+            WorldSnapshot snapshot = WorldSnapshot.fromNbt(prevTag);
+            SnapshotManager.restoreSnapshot(player, snapshot);
+            return;
+        }
+
+        float alpha = (float) (rewindCurrentTime - prevTime) / (nextTime - prevTime);
+
+        WorldSnapshot interpolatedSnapshot = WorldSnapshot.interpolate(
+                WorldSnapshot.fromNbt(prevTag), WorldSnapshot.fromNbt(nextTag),
+                alpha);
+
+        SnapshotManager.restoreSnapshot(player, interpolatedSnapshot);
+
+
     }
 }

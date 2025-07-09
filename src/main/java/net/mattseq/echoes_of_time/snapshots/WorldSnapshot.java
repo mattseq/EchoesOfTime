@@ -150,4 +150,47 @@ public class WorldSnapshot {
                 worldTime, isRaining, isThundering, timestamp);
     }
 
+
+    public static WorldSnapshot interpolate(WorldSnapshot a, WorldSnapshot b, float alpha) {
+        // === Interpolate player position ===
+        Vec3 interpolatedPos = new Vec3(
+                lerp(a.playerPos.x, b.playerPos.x, alpha),
+                lerp(a.playerPos.y, b.playerPos.y, alpha),
+                lerp(a.playerPos.z, b.playerPos.z, alpha)
+        );
+
+        // === Interpolate rotation (yaw/pitch) ===
+        float interpolatedYaw = lerpAngle(a.playerYaw, b.playerYaw, alpha);
+        float interpolatedPitch = lerpAngle(a.playerPitch, b.playerPitch, alpha);
+
+        // === Choose weather and time from a, or interpolate if desired ===
+        long interpolatedTime = (long) (a.worldTime + alpha * (b.worldTime - a.worldTime));
+        boolean interpolatedRain = a.isRaining;     // optional: blend
+        boolean interpolatedThunder = a.isThundering;
+
+        // === Use blocks/entities/playerData from snapshot a (cheaper than interpolating) ===
+        return new WorldSnapshot(
+                a.blocks,
+                a.entities,
+                interpolatedPos,
+                interpolatedPitch,
+                interpolatedYaw,
+                a.playerData,
+                interpolatedTime,
+                interpolatedRain,
+                interpolatedThunder,
+                (long) (a.timestamp + alpha * (b.timestamp - a.timestamp))
+        );
+    }
+
+    private static double lerp(double a, double b, float alpha) {
+        return a + alpha * (b - a);
+    }
+
+    private static float lerpAngle(float a, float b, float alpha) {
+        float delta = ((b - a + 540f) % 360f) - 180f;
+        return a + alpha * delta;
+    }
+
+
 }

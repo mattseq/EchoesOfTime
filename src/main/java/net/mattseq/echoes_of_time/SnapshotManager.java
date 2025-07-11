@@ -29,7 +29,7 @@ import java.util.Optional;
 
 public class SnapshotManager {
 
-    public static final int radius = 8;
+    public static final int RADIUS = 8;
 
     public static WorldSnapshot captureSnapshot(ServerPlayer player) {
         ServerLevel world = player.serverLevel();
@@ -38,9 +38,9 @@ public class SnapshotManager {
         List<EntitySnapshot> entities = new ArrayList<>();
 
 
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -radius; y <= radius; y++) {
-                for (int z = -radius; z <= radius; z++) {
+        for (int x = -RADIUS; x <= RADIUS; x++) {
+            for (int y = -RADIUS; y <= RADIUS; y++) {
+                for (int z = -RADIUS; z <= RADIUS; z++) {
                     BlockPos pos = center.offset(x, y, z);
                     BlockState state = world.getBlockState(pos);
                     CompoundTag blockEntityData = state.hasBlockEntity() ? world.getBlockEntity(pos).saveWithFullMetadata() : null;
@@ -49,7 +49,7 @@ public class SnapshotManager {
             }
         }
 
-        AABB box = new AABB(center).inflate(radius);
+        AABB box = new AABB(center).inflate(RADIUS);
         for (Entity entity : world.getEntities(player, box, e -> e != player)) {
             entities.add(EntitySnapshot.fromEntity(entity));
         }
@@ -75,7 +75,7 @@ public class SnapshotManager {
         }
 
         // === Clear Existing Entities (excluding player) in Area ===
-        AABB area = new AABB(center).inflate(radius);
+        AABB area = new AABB(center).inflate(RADIUS);
         List<Entity> entitiesToRemove = world.getEntities(player, area, e -> e != player);
         for (Entity entity : entitiesToRemove) {
             entity.discard(); // safely removes the entity from the world

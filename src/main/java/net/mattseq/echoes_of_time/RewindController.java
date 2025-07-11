@@ -24,6 +24,12 @@ public class RewindController {
     private long rewindCurrentTime;
     private long rewindTargetTime;
 
+    private CompoundTag cachedPrevTag;
+    private WorldSnapshot cachedPrevSnapshot;
+
+    private CompoundTag cachedNextTag;
+    private WorldSnapshot cachedNextSnapshot;
+
     private long lastSnapshotTime = 0;
 
     public RewindController(ServerPlayer player) {
@@ -107,10 +113,21 @@ public class RewindController {
             return;
         }
 
+        // cache snapshots for interpolation
+        if (cachedPrevTag != prevTag) {
+            cachedPrevTag = prevTag;
+            cachedPrevSnapshot = WorldSnapshot.fromNbt(prevTag);
+        }
+
+        if (cachedNextTag != nextTag) {
+            cachedNextTag = nextTag;
+            cachedNextSnapshot = WorldSnapshot.fromNbt(nextTag);
+        }
+
         float alpha = (float) (rewindCurrentTime - prevTime) / (nextTime - prevTime);
 
         WorldSnapshot interpolatedSnapshot = WorldSnapshot.interpolate(
-                WorldSnapshot.fromNbt(prevTag), WorldSnapshot.fromNbt(nextTag),
+                cachedPrevSnapshot, cachedNextSnapshot,
                 alpha);
 
         SnapshotManager.restoreSnapshot(player, interpolatedSnapshot);

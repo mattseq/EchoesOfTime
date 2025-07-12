@@ -69,6 +69,13 @@ public class RewindController {
         rewindBuffer.clear();
         ClientEvents.lockMovement = false;
         player.setInvulnerable(false);
+
+        // Clear cached snapshots
+        cachedPrevTag = null;
+        cachedPrevSnapshot = null;
+        cachedNextTag = null;
+        cachedNextSnapshot = null;
+
         MinecraftForge.EVENT_BUS.unregister(this);
     }
 
